@@ -1,0 +1,16 @@
+/* Game-related styles */
+
+body {
+    margin: 0;
+    overflow: hidden;
+    background-color: #1c1c1c;
+  }
+  
+  canvas {
+    display: block;
+    margin: 20px auto;
+    border: 5px solid #2b2b2b;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
+  }
+  
+  
