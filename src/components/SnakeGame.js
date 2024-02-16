@@ -31,8 +31,8 @@ const SnakeGame = () => {
         },
         scene: {
           preload: function() {
-            this.load.image('snake', 'assets/images/snake.png');
-            this.load.image('food', 'assets/images/food.png');
+            this.load.image('snake', process.env.PUBLIC_URL + '/images/snake.png');
+            this.load.image('food', process.env.PUBLIC_URL + '/images/food.png');
           },
           create: function() {
             let food;
