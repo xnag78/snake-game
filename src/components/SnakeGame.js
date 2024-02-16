@@ -112,7 +112,7 @@ const SnakeGame = () => {
     setGameRunning(true); // Start the game again
   };
 
-  const eatFood = (snake, food) => {
+  const eatFood = (snakePart, food) => {
     food.setPosition(Phaser.Math.Between(0, 18) * 32, Phaser.Math.Between(0, 18) * 32);
 
     const newPart = snake.create(snake.children.entries[snake.children.entries.length - 1].x, snake.children.entries[snake.children.entries.length - 1].y, 'snake');
