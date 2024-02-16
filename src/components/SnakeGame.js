@@ -7,13 +7,12 @@ const SnakeGame = () => {
   let cursors;
   let config;
   let snake;
-  let scoreText;
+  let scoreTextRef = useRef(null); // Create a ref for the score text
 
   const [gameOver, setGameOver] = useState(false);
   const [showGameOverUI, setShowGameOverUI] = useState(false); // State for game over UI
   const [gameRunning, setGameRunning] = useState(false); // State to track if the game is running
   let speed = 150;
-  let score = 0;
 
   useEffect(() => {
     if (gameRunning) {
@@ -50,12 +49,11 @@ const SnakeGame = () => {
             this.physics.add.collider(snake);
             this.physics.add.overlap(snake, food, eatFood, null, this);
 
-            score = 0;
             speed = 150;
             setGameOver(false);
 
             // Create score text
-            scoreText = this.add.text(16, 16, 'Score: 0', { fontSize: '24px', fill: '#fff' });
+            scoreTextRef.current = this.add.text(16, 16, 'Score: 0', { fontSize: '24px', fill: '#fff' });
           },
           update: function() {
             if (gameOver) {
@@ -91,9 +89,6 @@ const SnakeGame = () => {
                 setGameRunning(false);
               }
             }
-
-            // Update score text
-            scoreText.setText(`Score: ${score}`);
           }
         },
       };
@@ -119,7 +114,7 @@ const SnakeGame = () => {
 
     snake.add(newPart);
 
-    score += 10;
+    scoreTextRef.current.setText(`Score: ${parseInt(scoreTextRef.current.text.split(' ')[1]) + 1}`);
     speed += 5;
   };
 
@@ -128,6 +123,12 @@ const SnakeGame = () => {
     setShowGameOverUI(false); // Hide game over UI
     setGameRunning(true); // Start the game again
   };
+  
+  useEffect(() => {
+    if (scoreTextRef.current) {
+      scoreTextRef.current.setText('Score: 0'); // Reset the score text
+    }
+  }, [scoreTextRef.current]);    
 
   return (
     <div>
@@ -138,7 +139,7 @@ const SnakeGame = () => {
         {showGameOverUI && ( // Display game over UI when showGameOverUI is true
           <div className="game-over">
             <h2>Game Over!</h2>
-            <p style={{ fontSize: '36px', color: '#ff0000' }}>Your score: {score}</p>
+            <p style={{ fontSize: '36px', color: '#ff0000' }}>Your score: {scoreTextRef.current.text.split(' ')[1]}</p>
             <button onClick={restartGame}>Restart</button>
           </div>
         )}
