@@ -40,11 +40,11 @@ const SnakeGame = () => {
 
             snake = this.physics.add.group({
               key: 'snake',
-              repeat: 0,
-              setXY: { x: 300, y: 300, stepX: 32 },
+              repeat: 4, // Create 5 snake parts
+              setXY: { x: 300, y: 300, stepX: 25 }, // Set stepX to 25
             });
 
-            food = this.physics.add.image(Phaser.Math.Between(0, 18) * 32, Phaser.Math.Between(0, 18) * 32, 'food');
+            food = this.physics.add.image(Phaser.Math.Between(0, 18) * 20, Phaser.Math.Between(0, 18) * 20, 'food');
 
             this.physics.add.collider(snake);
             this.physics.add.overlap(snake, food, eatFood, null, this);
@@ -60,29 +60,46 @@ const SnakeGame = () => {
               setShowGameOverUI(true); // Show game over UI
               return;
             }
-
+          
             let snakeHead = snake.getChildren()[0];
             if (cursors.left.isDown && snakeHead.direction !== 'right') {
-              snakeHead.setVelocityX(-speed);
-              snakeHead.setVelocityY(0);
+              snakeHead.setVelocity(-speed, 0);
               snakeHead.direction = 'left';
             } else if (cursors.right.isDown && snakeHead.direction !== 'left') {
-              snakeHead.setVelocityX(speed);
-              snakeHead.setVelocityY(0);
+              snakeHead.setVelocity(speed, 0);
               snakeHead.direction = 'right';
             } else if (cursors.up.isDown && snakeHead.direction !== 'down') {
-              snakeHead.setVelocityY(-speed);
-              snakeHead.setVelocityX(0);
+              snakeHead.setVelocity(0, -speed);
               snakeHead.direction = 'up';
             } else if (cursors.down.isDown && snakeHead.direction !== 'up') {
-              snakeHead.setVelocityY(speed);
-              snakeHead.setVelocityX(0);
+              snakeHead.setVelocity(0, speed);
               snakeHead.direction = 'down';
             }
+          
+            // Update snake parts positions
+            for (let i = snake.getChildren().length - 1; i > 0; i--) {
+              let part = snake.getChildren()[i];
+              let prevPart = snake.getChildren()[i - 1];
 
+              // Position each part based on the position of the head and the direction of movement
+              if (prevPart.direction === 'left') {
+                part.x = prevPart.x + 25;
+                part.y = prevPart.y;
+              } else if (prevPart.direction === 'right') {
+                part.x = prevPart.x - 25;
+                part.y = prevPart.y;
+              } else if (prevPart.direction === 'up') {
+                part.x = prevPart.x;
+                part.y = prevPart.y + 25;
+              } else if (prevPart.direction === 'down') {
+                part.x = prevPart.x;
+                part.y = prevPart.y - 25;
+              }
+            }
+          
             if (snake.getChildren().length > 0) {
               const head = snake.getChildren()[0];
-
+          
               if (head.x < 0 || head.x >= this.game.config.width || head.y < 0 || head.y >= this.game.config.height) {
                 setGameOver(true);
                 setShowGameOverUI(true);
@@ -108,7 +125,7 @@ const SnakeGame = () => {
   };
 
   const eatFood = (snakePart, food) => {
-    food.setPosition(Phaser.Math.Between(0, 18) * 32, Phaser.Math.Between(0, 18) * 32);
+    food.setPosition(Phaser.Math.Between(0, 18) * 20, Phaser.Math.Between(0, 18) * 20);
 
     const newPart = snake.create(snake.children.entries[snake.children.entries.length - 1].x, snake.children.entries[snake.children.entries.length - 1].y, 'snake');
 
