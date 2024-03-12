@@ -6,7 +6,7 @@ const SnakeGame = () => {
   let game;
   let cursors;
   let config;
-  let snake;
+  let snakeParts = []; // Array to hold snake parts
   let scoreTextRef = useRef(null); // Create a ref for the score text
 
   const [gameOver, setGameOver] = useState(false);
@@ -30,24 +30,23 @@ const SnakeGame = () => {
         },
         scene: {
           preload: function() {
-            this.load.image('snake', process.env.PUBLIC_URL + '/images/snake.png');
-            this.load.image('food', process.env.PUBLIC_URL + '/images/food.png');
+            this.load.image('snake', process.env.PUBLIC_URL + '/images/snake.png'); // 20x20px
+            this.load.image('food', process.env.PUBLIC_URL + '/images/food.png'); // 20x20px
           },
           create: function() {
             let food;
 
             cursors = this.input.keyboard.createCursorKeys();
 
-            snake = this.physics.add.group({
-              key: 'snake',
-              repeat: 4, // Create 5 snake parts
-              setXY: { x: 300, y: 300, stepX: 25 }, // Set stepX to 25
-            });
+            // Initialize snakeParts array with 4 parts spaced apart nicely
+            for (let i = 0; i < 4; i++) {
+              snakeParts.push(this.physics.add.image(300 + i * 20, 300, 'snake'));
+            }
 
             food = this.physics.add.image(Phaser.Math.Between(0, 18) * 20, Phaser.Math.Between(0, 18) * 20, 'food');
 
-            this.physics.add.collider(snake);
-            this.physics.add.overlap(snake, food, eatFood, null, this);
+            this.physics.add.collider(snakeParts);
+            this.physics.add.overlap(snakeParts, food, eatFood, null, this);
 
             speed = 150;
             setGameOver(false);
@@ -61,7 +60,7 @@ const SnakeGame = () => {
               return;
             }
           
-            let snakeHead = snake.getChildren()[0];
+            let snakeHead = snakeParts[0];
             if (cursors.left.isDown && snakeHead.direction !== 'right') {
               snakeHead.setVelocity(-speed, 0);
               snakeHead.direction = 'left';
@@ -77,28 +76,28 @@ const SnakeGame = () => {
             }
           
             // Update snake parts positions
-            for (let i = snake.getChildren().length - 1; i > 0; i--) {
-              let part = snake.getChildren()[i];
-              let prevPart = snake.getChildren()[i - 1];
+            for (let i = snakeParts.length - 1; i > 0; i--) {
+              let part = snakeParts[i];
+              let prevPart = snakeParts[i - 1];
 
               // Position each part based on the position of the head and the direction of movement
               if (prevPart.direction === 'left') {
-                part.x = prevPart.x + 25;
+                part.x = prevPart.x + 20;
                 part.y = prevPart.y;
               } else if (prevPart.direction === 'right') {
-                part.x = prevPart.x - 25;
+                part.x = prevPart.x - 20;
                 part.y = prevPart.y;
               } else if (prevPart.direction === 'up') {
                 part.x = prevPart.x;
-                part.y = prevPart.y + 25;
+                part.y = prevPart.y + 20;
               } else if (prevPart.direction === 'down') {
                 part.x = prevPart.x;
-                part.y = prevPart.y - 25;
+                part.y = prevPart.y - 20;
               }
             }
           
-            if (snake.getChildren().length > 0) {
-              const head = snake.getChildren()[0];
+            if (snakeParts.length > 0) {
+              const head = snakeParts[0];
           
               if (head.x < 0 || head.x >= this.game.config.width || head.y < 0 || head.y >= this.game.config.height) {
                 setGameOver(true);
@@ -127,9 +126,9 @@ const SnakeGame = () => {
   const eatFood = (snakePart, food) => {
     food.setPosition(Phaser.Math.Between(0, 18) * 20, Phaser.Math.Between(0, 18) * 20);
 
-    const newPart = snake.create(snake.children.entries[snake.children.entries.length - 1].x, snake.children.entries[snake.children.entries.length - 1].y, 'snake');
+    const newPart = game.scene.scenes[0].physics.add.image(snakeParts[snakeParts.length - 1].x, snakeParts[snakeParts.length - 1].y, 'snake');
 
-    snake.add(newPart);
+    snakeParts.push(newPart);
 
     scoreTextRef.current.setText(`Score: ${parseInt(scoreTextRef.current.text.split(' ')[1]) + 1}`);
     speed += 5;
