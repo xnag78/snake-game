@@ -40,7 +40,10 @@ const SnakeGame = () => {
 
             // Initialize snakeParts array with 4 parts spaced apart nicely
             for (let i = 0; i < 4; i++) {
-              snakeParts.push(this.physics.add.image(300 + i * 20, 300, 'snake'));
+              const part = this.physics.add.image(300 + i * 20, 300, 'snake');
+              part.direction = 'none'; // Set initial direction to none
+              part.setVelocity(0, 0); // Set initial velocity to 0
+              snakeParts.push(part);
             }
 
             food = this.physics.add.image(Phaser.Math.Between(0, 18) * 20, Phaser.Math.Between(0, 18) * 20, 'food');
@@ -59,8 +62,9 @@ const SnakeGame = () => {
               setShowGameOverUI(true); // Show game over UI
               return;
             }
-          
+
             let snakeHead = snakeParts[0];
+            snakeHead.setVelocity(0, 0); // Reset velocity to 0 before checking input
             if (cursors.left.isDown && snakeHead.direction !== 'right') {
               snakeHead.setVelocity(-speed, 0);
               snakeHead.direction = 'left';
@@ -74,26 +78,30 @@ const SnakeGame = () => {
               snakeHead.setVelocity(0, speed);
               snakeHead.direction = 'down';
             }
-          
-            // Update snake parts positions
-            for (let i = snakeParts.length - 1; i > 0; i--) {
-              let part = snakeParts[i];
-              let prevPart = snakeParts[i - 1];
 
-              // Position each part based on the position of the head and the direction of movement
-              if (prevPart.direction === 'left') {
-                part.x = prevPart.x + 20;
-                part.y = prevPart.y;
-              } else if (prevPart.direction === 'right') {
-                part.x = prevPart.x - 20;
-                part.y = prevPart.y;
-              } else if (prevPart.direction === 'up') {
-                part.x = prevPart.x;
-                part.y = prevPart.y + 20;
-              } else if (prevPart.direction === 'down') {
-                part.x = prevPart.x;
-                part.y = prevPart.y - 20;
-              }
+            // Create a new snake part at the head position
+            let newPart = game.scene.scenes[0].physics.add.image(snakeHead.x, snakeHead.y, 'snake');
+            newPart.direction = snakeHead.direction;
+            newPart.setVelocity(snakeHead.body.velocity.x, snakeHead.body.velocity.y); // Set velocity
+
+            // Adjust position based on direction of movement
+            if (snakeHead.direction === 'left') {
+              newPart.x -= 20; // Adjust x position to the left
+            } else if (snakeHead.direction === 'right') {
+              newPart.x += 20; // Adjust x position to the right
+            } else if (snakeHead.direction === 'up') {
+              newPart.y -= 20; // Adjust y position upwards
+            } else if (snakeHead.direction === 'down') {
+              newPart.y += 20; // Adjust y position downwards
+            }
+
+            // Add the new part at the front of the snakeParts array
+            snakeParts.unshift(newPart);
+
+            // Remove the tail if the snake has moved
+            if (snakeParts.length > 0) {
+              let tail = snakeParts.pop();
+              tail.destroy();
             }
           
             if (snakeParts.length > 0) {
