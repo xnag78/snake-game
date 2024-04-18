@@ -12,7 +12,7 @@ const SnakeGame = () => {
   const [gameOver, setGameOver] = useState(false);
   const [showGameOverUI, setShowGameOverUI] = useState(false); // State for game over UI
   const [gameRunning, setGameRunning] = useState(false); // State to track if the game is running
-  let speed = 150;
+  let speed = 3;
 
   useEffect(() => {
     if (gameRunning) {
@@ -40,7 +40,7 @@ const SnakeGame = () => {
 
             // Initialize snakeParts array with 4 parts spaced apart nicely
             for (let i = 0; i < 4; i++) {
-              const part = this.physics.add.image(300 + i * 20, 300, 'snake');
+              const part = this.physics.add.image(300 + i * 21, 300, 'snake');  // using 21 instead of 20 is for the 1px gap
               part.direction = 'none'; // Set initial direction to none
               part.setVelocity(0, 0); // Set initial velocity to 0
               snakeParts.push(part);
@@ -51,7 +51,7 @@ const SnakeGame = () => {
             this.physics.add.collider(snakeParts);
             this.physics.add.overlap(snakeParts, food, eatFood, null, this);
 
-            speed = 150;
+            speed = 3;
             setGameOver(false);
 
             // Create score text
@@ -64,6 +64,10 @@ const SnakeGame = () => {
             }
 
             let snakeHead = snakeParts[0];
+
+            const oldHeadX = snakeHead.x;
+            const oldHeadY = snakeHead.y;
+
             snakeHead.setVelocity(0, 0); // Reset velocity to 0 before checking input
             if (cursors.left.isDown && snakeHead.direction !== 'right') {
               snakeHead.setVelocity(-speed, 0);
@@ -80,19 +84,19 @@ const SnakeGame = () => {
             }
 
             // Create a new snake part at the head position
-            let newPart = game.scene.scenes[0].physics.add.image(snakeHead.x, snakeHead.y, 'snake');
+            let newPart = game.scene.scenes[0].physics.add.image(oldHeadX, oldHeadY, 'snake');
             newPart.direction = snakeHead.direction;
             newPart.setVelocity(snakeHead.body.velocity.x, snakeHead.body.velocity.y); // Set velocity
 
             // Adjust position based on direction of movement
             if (snakeHead.direction === 'left') {
-              newPart.x -= 20; // Adjust x position to the left
+              newPart.x -= speed; // Adjust x position to the left
             } else if (snakeHead.direction === 'right') {
-              newPart.x += 20; // Adjust x position to the right
+              newPart.x += speed; // Adjust x position to the right
             } else if (snakeHead.direction === 'up') {
-              newPart.y -= 20; // Adjust y position upwards
+              newPart.y -= speed; // Adjust y position upwards
             } else if (snakeHead.direction === 'down') {
-              newPart.y += 20; // Adjust y position downwards
+              newPart.y += speed; // Adjust y position downwards
             }
 
             // Add the new part at the front of the snakeParts array
@@ -132,14 +136,14 @@ const SnakeGame = () => {
   };
 
   const eatFood = (snakePart, food) => {
-    food.setPosition(Phaser.Math.Between(0, 18) * 20, Phaser.Math.Between(0, 18) * 20);
+    food.setPosition(Phaser.Math.Between(2, 16) * 20, Phaser.Math.Between(2, 16) * 20);
 
     const newPart = game.scene.scenes[0].physics.add.image(snakeParts[snakeParts.length - 1].x, snakeParts[snakeParts.length - 1].y, 'snake');
 
     snakeParts.push(newPart);
 
     scoreTextRef.current.setText(`Score: ${parseInt(scoreTextRef.current.text.split(' ')[1]) + 1}`);
-    speed += 5;
+    speed += 1;
   };
 
   const restartGame = () => {
