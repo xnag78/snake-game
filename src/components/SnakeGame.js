@@ -6,17 +6,18 @@ const SnakeGame = () => {
   let game;
   let cursors;
   let config;
-  let snakeParts = []; // Array to hold snake parts
-  let scoreTextRef = useRef(null); // Create a ref for the score text
+  let snakeParts = [];
+  let scoreTextRef = useRef(null);
 
   const [gameOver, setGameOver] = useState(false);
-  const [showGameOverUI, setShowGameOverUI] = useState(false); // State for game over UI
-  const [gameRunning, setGameRunning] = useState(false); // State to track if the game is running
+  const [showGameOverUI, setShowGameOverUI] = useState(false);
+  const [gameRunning, setGameRunning] = useState(false);
   let speed = 150;
+  let direction = 'right';
+  let moveTime = 0; // Time accumulator for snake movement
 
   useEffect(() => {
     if (gameRunning) {
-      // Initialize game only if it's running
       config = {
         type: Phaser.AUTO,
         width: 600,
@@ -30,23 +31,20 @@ const SnakeGame = () => {
         },
         scene: {
           preload: function() {
-            this.load.image('snake', process.env.PUBLIC_URL + '/images/snake.png'); // 20x20px
-            this.load.image('food', process.env.PUBLIC_URL + '/images/food.png'); // 20x20px
+            this.load.image('snake', process.env.PUBLIC_URL + '/images/snake.png');
+            this.load.image('food', process.env.PUBLIC_URL + '/images/food.png');
           },
           create: function() {
             let food;
 
             cursors = this.input.keyboard.createCursorKeys();
 
-            // Initialize snakeParts array with 4 parts spaced apart nicely
             for (let i = 0; i < 4; i++) {
-              const part = this.physics.add.image(300 + i * 21, 300, 'snake');  // using 21 instead of 20 is for the 1px gap
-              part.direction = 'none'; // Set initial direction to none
-              part.setVelocity(0, 0); // Set initial velocity to 0
+              const part = this.physics.add.image(300 + i * 20, 300, 'snake');
               snakeParts.push(part);
             }
 
-            food = this.physics.add.image(Phaser.Math.Between(0, 18) * 20, Phaser.Math.Between(0, 18) * 20, 'food');
+            food = this.physics.add.image(Phaser.Math.Between(0, 29) * 20, Phaser.Math.Between(0, 29) * 20, 'food');
 
             this.physics.add.collider(snakeParts);
             this.physics.add.overlap(snakeParts, food, eatFood, null, this);
@@ -54,64 +52,36 @@ const SnakeGame = () => {
             speed = 150;
             setGameOver(false);
 
-            // Create score text
             scoreTextRef.current = this.add.text(16, 16, 'Score: 0', { fontSize: '24px', fill: '#fff' });
           },
-          update: function() {
+          update: function(time, delta) {
             if (gameOver) {
-              setShowGameOverUI(true); // Show game over UI
+              setShowGameOverUI(true);
               return;
             }
 
-            let snakeHead = snakeParts[0];
-            snakeHead.setVelocity(0, 0); // Reset velocity to 0 before checking input
-            if (cursors.left.isDown && snakeHead.direction !== 'right') {
-              snakeHead.setVelocity(-speed, 0);
-              snakeHead.direction = 'left';
-            } else if (cursors.right.isDown && snakeHead.direction !== 'left') {
-              snakeHead.setVelocity(speed, 0);
-              snakeHead.direction = 'right';
-            } else if (cursors.up.isDown && snakeHead.direction !== 'down') {
-              snakeHead.setVelocity(0, -speed);
-              snakeHead.direction = 'up';
-            } else if (cursors.down.isDown && snakeHead.direction !== 'up') {
-              snakeHead.setVelocity(0, speed);
-              snakeHead.direction = 'down';
+            if (time > moveTime) {
+              moveSnake();
+              moveTime = time + speed;
             }
 
-            // // Create a new snake part at the head position
-            // let newPart = game.scene.scenes[0].physics.add.image(snakeHead.x, snakeHead.y, 'snake');
-            // newPart.direction = snakeHead.direction;
-            // newPart.setVelocity(snakeHead.body.velocity.x, snakeHead.body.velocity.y); // Set velocity
+            // Handle input
+            if (cursors.left.isDown && direction !== 'right') {
+              direction = 'left';
+            } else if (cursors.right.isDown && direction !== 'left') {
+              direction = 'right';
+            } else if (cursors.up.isDown && direction !== 'down') {
+              direction = 'up';
+            } else if (cursors.down.isDown && direction !== 'up') {
+              direction = 'down';
+            }
 
-            // // Adjust position based on direction of movement
-            // if (snakeHead.direction === 'left') {
-            //   newPart.x -= 20; // Adjust x position to the left
-            // } else if (snakeHead.direction === 'right') {
-            //   newPart.x += 20; // Adjust x position to the right
-            // } else if (snakeHead.direction === 'up') {
-            //   newPart.y -= 20; // Adjust y position upwards
-            // } else if (snakeHead.direction === 'down') {
-            //   newPart.y += 20; // Adjust y position downwards
-            // }
-
-            // // Add the new part at the front of the snakeParts array
-            // snakeParts.unshift(newPart);
-
-            // // Remove the tail if the snake has moved
-            // if (snakeParts.length > 0) {
-            //   let tail = snakeParts.pop();
-            //   tail.destroy();
-            // }
-          
-            if (snakeParts.length > 0) {
-              const head = snakeParts[0];
-          
-              if (head.x < 0 || head.x >= this.game.config.width || head.y < 0 || head.y >= this.game.config.height) {
-                setGameOver(true);
-                setShowGameOverUI(true);
-                setGameRunning(false);
-              }
+            // Check for collisions with walls
+            let head = snakeParts[0];
+            if (head.x < 10 || head.x > this.game.config.width - 10 || head.y < 10 || head.y > this.game.config.height - 10) {
+              setGameOver(true);
+              setShowGameOverUI(true);
+              setGameRunning(false);
             }
           }
         },
@@ -125,42 +95,67 @@ const SnakeGame = () => {
     }
   }, [gameRunning]);
 
+  const moveSnake = () => {
+    // Calculate new position for head
+    let head = snakeParts[0];
+    let newX = head.x;
+    let newY = head.y;
+
+    if (direction === 'left') {
+      newX -= 20;
+    } else if (direction === 'right') {
+      newX += 20;
+    } else if (direction === 'up') {
+      newY -= 20;
+    } else if (direction === 'down') {
+      newY += 20;
+    }
+
+    // Move the head
+    head.setPosition(newX, newY);
+
+    // Move the body
+    for (let i = snakeParts.length - 1; i > 0; i--) {
+      snakeParts[i].setPosition(snakeParts[i - 1].x, snakeParts[i - 1].y);
+    }
+  };
+
   const startGame = () => {
     setGameOver(false);
-    setShowGameOverUI(false); // Hide game over UI
-    setGameRunning(true); // Start the game again
+    setShowGameOverUI(false);
+    setGameRunning(true);
   };
 
   const eatFood = (snakePart, food) => {
-    food.setPosition(Phaser.Math.Between(0, 18) * 20, Phaser.Math.Between(0, 18) * 20);
+    food.setPosition(Phaser.Math.Between(0, 28) * 20, Phaser.Math.Between(0, 28) * 20);
 
     const newPart = game.scene.scenes[0].physics.add.image(snakeParts[snakeParts.length - 1].x, snakeParts[snakeParts.length - 1].y, 'snake');
 
     snakeParts.push(newPart);
 
     scoreTextRef.current.setText(`Score: ${parseInt(scoreTextRef.current.text.split(' ')[1]) + 1}`);
-    speed += 5;
+    speed -= 5; // Increase speed by reducing the interval
   };
 
   const restartGame = () => {
     setGameOver(false);
-    setShowGameOverUI(false); // Hide game over UI
-    setGameRunning(true); // Start the game again
+    setShowGameOverUI(false);
+    setGameRunning(true);
   };
   
   useEffect(() => {
     if (scoreTextRef.current) {
-      scoreTextRef.current.setText('Score: 0'); // Reset the score text
+      scoreTextRef.current.setText('Score: 0');
     }
   }, [scoreTextRef.current]);    
 
   return (
     <div>
-      {!gameRunning && !showGameOverUI && ( // Render start button if game is not running and game over UI is not shown
+      {!gameRunning && !showGameOverUI && (
         <button onClick={startGame}>Start Game</button>
       )}
       <div ref={gameContainer}>
-        {showGameOverUI && ( // Display game over UI when showGameOverUI is true
+        {showGameOverUI && (
           <div className="game-over">
             <h2>Game Over!</h2>
             <p style={{ fontSize: '36px', color: '#ff0000' }}>Your score: {scoreTextRef.current.text.split(' ')[1]}</p>
