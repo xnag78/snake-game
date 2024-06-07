@@ -35,6 +35,7 @@ const SnakeGame = () => {
           create: createScene,
           update: updateScene,
         },
+        parent: gameContainer.current,
       };
 
       game = new Phaser.Game(config);
@@ -161,21 +162,20 @@ const SnakeGame = () => {
   };
 
   return (
-    <div>
+    <div className="game-container">
+      <div ref={gameContainer}></div>
       {!gameRunning && !showGameOverUI && (
-        <button onClick={startGame}>Start Game</button>
+        <button className='start-button' onClick={startGame}>Start Game</button>
       )}
-      <div ref={gameContainer}>
-        {showGameOverUI && (
-          <div className="game-over">
-            <h2>Game Over!</h2>
-            <p style={{ fontSize: '36px', color: '#ff0000' }}>
-              Your score: {scoreTextRef.current?.text.split(' ')[1]}
-            </p>
-            <button onClick={restartGame}>Restart</button>
-          </div>
-        )}
-      </div>
+      {showGameOverUI && (
+        <div className="game-over">
+          <h2>Game Over!</h2>
+          <p style={{ fontSize: '36px', color: '#ff0000' }}>
+            Your score: {scoreTextRef.current?.text.split(' ')[1]}
+          </p>
+          <button className='start-button' onClick={restartGame}>Restart</button>
+        </div>
+      )}
     </div>
   );
 };
