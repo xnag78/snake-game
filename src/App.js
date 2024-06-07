@@ -1,7 +1,7 @@
 import React from 'react';
 import SnakeGame from './components/SnakeGame';
-import './styles/game.css';
-import './styles/ui.css';
+import './styles/snakeGame.css';
+import './styles/snakeUI.css';
 
 const App = () => {
   return (
