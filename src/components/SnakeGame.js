@@ -8,6 +8,7 @@ const SnakeGame = () => {
   const [gameOver, setGameOver] = useState(false);
   const [showGameOverUI, setShowGameOverUI] = useState(false);
   const [gameRunning, setGameRunning] = useState(false);
+  const [score, setScore] = useState(0);
 
   let game;
   let cursors;
@@ -18,7 +19,7 @@ const SnakeGame = () => {
   let speed = 150;
 
   useEffect(() => {
-    if (gameRunning) {
+    if (gameRunning && !game) {
       const config = {
         type: Phaser.AUTO,
         width: 600,
@@ -39,8 +40,11 @@ const SnakeGame = () => {
       };
 
       game = new Phaser.Game(config);
+
       return () => {
-        game.destroy(true);
+        if (game) {
+          game.destroy(true);
+        }
       };
     }
   }, [gameRunning]);
@@ -66,9 +70,10 @@ const SnakeGame = () => {
     );
 
     this.physics.add.collider(snakeParts);
-    this.physics.add.overlap(snakeParts, food, () => eatFood(food), null, this);
+    this.physics.add.overlap(snakeParts[0], food, () => eatFood(food), null, this);
 
     speed = 150;
+    setScore(0);
     setGameOver(false);
 
     scoreTextRef.current = this.add.text(16, 16, 'Score: 0', { fontSize: '24px', fill: '#fff' });
@@ -144,8 +149,11 @@ const SnakeGame = () => {
 
     snakeParts.push(newPart);
 
-    const newScore = parseInt(scoreTextRef.current.text.split(' ')[1]) + 1;
-    scoreTextRef.current.setText(`Score: ${newScore}`);
+    setScore(prevScore => {
+      const newScore = prevScore + 1;
+      scoreTextRef.current.setText(`Score: ${newScore}`);
+      return newScore;
+    });
     speed = Math.max(50, speed - 5);
   };
 
@@ -171,7 +179,7 @@ const SnakeGame = () => {
         <div className="game-over">
           <h2>Game Over!</h2>
           <p style={{ fontSize: '36px', color: '#ff0000' }}>
-            Your score: {scoreTextRef.current?.text.split(' ')[1]}
+            Your score: {score}
           </p>
           <button className='start-button' onClick={restartGame}>Restart</button>
         </div>
