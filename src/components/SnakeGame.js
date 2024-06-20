@@ -9,6 +9,7 @@ const SnakeGame = () => {
   const [showGameOverUI, setShowGameOverUI] = useState(false);
   const [gameRunning, setGameRunning] = useState(false);
   const [score, setScore] = useState(0);
+  const [inputDirection, setInputDirection] = useState('right'); // State for directional input
 
   let game;
   let cursors;
@@ -48,6 +49,11 @@ const SnakeGame = () => {
       };
     }
   }, [gameRunning]);
+
+  useEffect(() => {
+    console.log(`Direction changed to: ${inputDirection}`);
+    direction = inputDirection; // Update the game direction when inputDirection changes
+  }, [inputDirection]);
 
   const preloadScene = function () {
     this.load.image('snake', process.env.PUBLIC_URL + '/images/snake.png');
@@ -92,12 +98,16 @@ const SnakeGame = () => {
 
     if (cursors.left.isDown && direction !== 'right') {
       direction = 'left';
+      setInputDirection('left');
     } else if (cursors.right.isDown && direction !== 'left') {
       direction = 'right';
+      setInputDirection('right');
     } else if (cursors.up.isDown && direction !== 'down') {
       direction = 'up';
+      setInputDirection('up');
     } else if (cursors.down.isDown && direction !== 'up') {
       direction = 'down';
+      setInputDirection('down');
     }
 
     checkCollisions();
@@ -107,6 +117,8 @@ const SnakeGame = () => {
     const head = snakeParts[0];
     let newX = head.x;
     let newY = head.y;
+
+    console.log(`Moving snake. Current direction: ${direction}`);
 
     if (direction === 'left') newX -= gridSize + 1;
     if (direction === 'right') newX += gridSize + 1;
@@ -129,9 +141,11 @@ const SnakeGame = () => {
       head.y >= 600 - gridSize / 2 ||
       snakeParts.slice(1).some(part => part.x === head.x && part.y === head.y)
     ) {
+      console.log('Collision detected. Game over.');
       setGameOver(true);
       setShowGameOverUI(true);
       setGameRunning(false);
+      setInputDirection('right'); // Reset direction to default
     }
   };
 
@@ -161,12 +175,14 @@ const SnakeGame = () => {
     setGameOver(false);
     setShowGameOverUI(false);
     setGameRunning(true);
+    setInputDirection('right'); // Reset direction to default
   };
 
   const restartGame = () => {
     setGameOver(false);
     setShowGameOverUI(false);
     setGameRunning(true);
+    setInputDirection('right'); // Reset direction to default
   };
 
   return (
@@ -182,6 +198,14 @@ const SnakeGame = () => {
             Your score: {score}
           </p>
           <button className='start-button' onClick={restartGame}>Restart</button>
+        </div>
+      )}
+      {gameRunning && (
+        <div className="controls">
+          <button onClick={() => setInputDirection('up')}>Up</button>
+          <button onClick={() => setInputDirection('left')}>Left</button>
+          <button onClick={() => setInputDirection('down')}>Down</button>
+          <button onClick={() => setInputDirection('right')}>Right</button>
         </div>
       )}
     </div>
